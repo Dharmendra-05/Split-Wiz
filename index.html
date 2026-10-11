@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Split Wiz — Expense-Splitting & Debt Settlement</title>
+    <meta
+      name="description"
+      content="Split Wiz is an expense-splitting website that allows friends to divide bills, record shared expenses, track who paid, view individual shares, and settle debts with exact paise calculations."
+    />
+    <meta property="og:title" content="Split Wiz — Expense-Splitting & Debt Settlement" />
+    <meta
+      property="og:description"
+      content="Split Wiz is an expense-splitting website that allows friends to divide bills, record shared expenses, track who paid, view individual shares, and settle debts with exact paise calculations."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <noscript>
+      <div class="noscript-banner">
+        <strong>JavaScript Required:</strong> Split Wiz requires JavaScript to perform exact financial calculations and manage expenses. Please enable JavaScript in your browser to continue.
+      </div>
+    </noscript>
+
+    <!-- Global Notification Banner -->
+    <div id="global-notification" class="notification-banner hidden" role="status" aria-live="polite">
+      <span id="notification-message"></span>
+      <button type="button" id="notification-dismiss" class="btn-icon" aria-label="Dismiss notification">&times;</button>
+    </div>
+
+    <!-- Storage Error Banner -->
+    <div id="storage-error-banner" class="storage-error-banner hidden" role="alert" aria-live="assertive">
+      <div class="banner-content">
+        <strong>Storage Notice:</strong>
+        <span id="storage-error-message">Persistent local storage could not be accessed. Some changes may be kept in memory only for this session.</span>
+      </div>
+      <button type="button" id="storage-error-dismiss" class="btn-sm">Dismiss</button>
+    </div>
+
+    <!-- Live Announcement for Screen Readers -->
+    <div id="sr-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Main Navigation Bar (Visible when authenticated) -->
+    <header id="main-header" class="main-header hidden">
+      <div class="nav-container">
+        <div class="brand">
+          <span class="brand-bolt" aria-hidden="true">⚡</span>
+          <span class="brand-text">Split Wiz</span>
+        </div>
+
+        <nav class="desktop-nav" aria-label="Main Navigation">
+          <button type="button" class="nav-link active" data-nav="dashboard">Dashboard</button>
+          <button type="button" class="nav-link" data-nav="new-expense">New Expense</button>
+          <button type="button" class="nav-link" data-nav="settle-up">Settle Up</button>
+          <button type="button" class="nav-link" data-nav="history">History</button>
+        </nav>
+
+        <div class="nav-user-actions">
+          <div class="user-badge" id="nav-user-display" title="Active Account">
+            <span class="user-avatar" aria-hidden="true">👤</span>
+            <span class="user-name" id="nav-user-name">User</span>
+          </div>
+          <button type="button" id="btn-logout" class="btn-secondary btn-sm">Log Out</button>
+          <button type="button" id="btn-mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Dropdown Navigation -->
+      <nav id="mobile-nav-dropdown" class="mobile-nav-dropdown hidden" aria-label="Mobile Navigation">
+        <button type="button" class="mobile-nav-link active" data-nav="dashboard">Dashboard</button>
+        <button type="button" class="mobile-nav-link" data-nav="new-expense">New Expense</button>
+        <button type="button" class="mobile-nav-link" data-nav="settle-up">Settle Up</button>
+        <button type="button" class="mobile-nav-link" data-nav="history">History</button>
+        <div class="mobile-nav-divider"></div>
+        <button type="button" id="btn-mobile-logout" class="mobile-nav-link text-danger">Log Out</button>
+      </nav>
+    </header>
+
+    <!-- Main Application Container -->
+    <main id="app-container" class="app-container">
+
+      <!-- ==================== AUTHENTICATION VIEW ==================== -->
+      <section id="auth-view" class="auth-view" aria-label="Authentication">
+        <div class="auth-card">
+          <div class="auth-brand">
+            <span class="brand-bolt auth-bolt" aria-hidden="true">⚡</span>
+            <h1 class="auth-title">Split Wiz</h1>
+            <p class="auth-subtitle">Divide bills, track shared expenses, and settle debts with exact paise precision.</p>
+          </div>
+
+          <div class="auth-tabs" role="tablist" aria-label="Authentication Options">
+            <button
+              type="button"
+              role="tab"
+              id="tab-login"
+              class="auth-tab active"
+              aria-selected="true"
+              aria-controls="auth-login-panel"
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="tab-register"
+              class="auth-tab"
+              aria-selected="false"
+              aria-controls="auth-register-panel"
+            >
+              Register
+            </button>
+          </div>
+
+          <!-- Login Form Panel -->
+          <div id="auth-login-panel" class="auth-panel" role="tabpanel" aria-labelledby="tab-login">
+            <form id="form-login" novalidate>
+              <div id="login-error-box" class="form-error-banner hidden" role="alert"></div>
+
+              <div class="form-group">
+                <label for="login-username" class="form-label">Username</label>
+                <input
+                  type="text"
+                  id="login-username"
+                  name="username"
+                  class="form-input"
+                  autocomplete="username"
+                  placeholder="Enter your username"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="login-password" class="form-label">Password</label>
+                <input
+                  type="password"
+                  id="login-password"
+                  name="password"
+                  class="form-input"
+                  autocomplete="current-password"
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+
+              <button type="submit" class="btn-primary btn-block">Sign In</button>
+
+              <div class="auth-demo-hint">
+                <small>Local-only demonstration authentication. Passwords are securely hashed with PBKDF2-SHA256.</small>
+              </div>
+            </form>
+          </div>
+
+          <!-- Register Form Panel -->
+          <div id="auth-register-panel" class="auth-panel hidden" role="tabpanel" aria-labelledby="tab-register">
+            <form id="form-register" novalidate>
+              <div id="register-error-box" class="form-error-banner hidden" role="alert"></div>
+
+              <div class="form-group">
+                <label for="register-fullname" class="form-label">Full Name</label>
+                <input
+                  type="text"
+                  id="register-fullname"
+                  name="fullname"
+                  class="form-input"
+                  autocomplete="name"
+                  placeholder="e.g. Alice Sharma"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="register-username" class="form-label">Username</label>
+                <input
+                  type="text"
+                  id="register-username"
+                  name="username"
+                  class="form-input"
+                  autocomplete="username"
+                  placeholder="Letters, numbers, underscores (min 3 chars)"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="register-password" class="form-label">Password</label>
+                <input
+                  type="password"
+                  id="register-password"
+                  name="password"
+                  class="form-input"
+                  autocomplete="new-password"
+                  placeholder="At least 6 characters"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="register-confirm-password" class="form-label">Confirm Password</label>
+                <input
+                  type="password"
+                  id="register-confirm-password"
+                  name="confirmPassword"
+                  class="form-input"
+                  autocomplete="new-password"
+                  placeholder="Re-enter password"
+                  required
+                />
+              </div>
+
+              <button type="submit" class="btn-primary btn-block">Create Account</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== MAIN APP VIEWS ==================== -->
+      <div id="app-view" class="app-view hidden">
+
+        <!-- SECTION 1: DASHBOARD -->
+        <section id="section-dashboard" class="content-section" aria-label="Dashboard">
+          <div class="section-header">
+            <div>
+              <h1 id="dashboard-welcome-heading" class="section-title">Welcome back, User</h1>
+              <p class="section-subtitle">Here is a summary of your shared expenses and outstanding balances.</p>
+            </div>
+            <button type="button" class="btn-primary btn-action" data-nav="new-expense">
+              + New Expense
+            </button>
+          </div>
+
+          <!-- Summary Metric Cards -->
+          <div class="dashboard-grid">
+            <div class="summary-card">
+              <span class="card-icon" aria-hidden="true">📋</span>
+              <div class="card-info">
+                <span class="card-label">Total Expenses</span>
+                <span class="card-value" id="dash-total-count">0</span>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <span class="card-icon" aria-hidden="true">💰</span>
+              <div class="card-info">
+                <span class="card-label">Total Spending</span>
+                <span class="card-value tabular" id="dash-total-spending">₹0.00</span>
+              </div>
+            </div>
+
+            <div class="summary-card card-positive">
+              <span class="card-icon" aria-hidden="true">📥</span>
+              <div class="card-info">
+                <span class="card-label">You're Owed</span>
+                <span class="card-value tabular text-success" id="dash-you-are-owed">₹0.00</span>
+              </div>
+            </div>
+
+            <div class="summary-card card-negative">
+              <span class="card-icon" aria-hidden="true">📤</span>
+              <div class="card-info">
+                <span class="card-label">You Owe</span>
+                <span class="card-value tabular text-danger" id="dash-you-owe">₹0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Expenses Section -->
+          <div class="card content-card mt-lg">
+            <div class="card-header-flex">
+              <h2 class="card-title">Recent Expenses</h2>
+              <button type="button" class="btn-link" data-nav="history">View All in History &rarr;</button>
+            </div>
+
+            <div id="dashboard-recent-container">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 2: NEW EXPENSE FORM & CALCULATION (MANDATORY CORE) -->
+        <section id="section-new-expense" class="content-section hidden" aria-label="New Expense">
+          <div class="section-header">
+            <div>
+              <h1 id="expense-form-heading" class="section-title">Split a Bill</h1>
+              <p class="section-subtitle">Enter bill details, select participants, and calculate mathematically exact shares.</p>
+            </div>
+          </div>
+
+          <!-- Active Edit Mode Notice -->
+          <div id="editing-mode-banner" class="info-banner hidden" role="status">
+            <span>Editing saved expense: <strong id="editing-expense-name"></strong></span>
+            <button type="button" id="btn-cancel-edit" class="btn-sm btn-secondary">Cancel Edit</button>
+          </div>
+
+          <div class="expense-layout-grid">
+            <!-- Form Card -->
+            <div class="card form-card">
+              <form id="form-expense" novalidate>
+                <!-- Validation Error Summary Box -->
+                <div id="expense-form-error" class="form-error-banner hidden" role="alert"></div>
+
+                <!-- SECTION A: Expense Details -->
+                <fieldset class="form-fieldset">
+                  <legend class="fieldset-legend">1. Expense Details</legend>
+
+                  <div class="form-group">
+                    <label for="input-occasion" class="form-label">
+                      Occasion Name <span class="required-mark">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="input-occasion"
+                      name="occasion"
+                      class="form-input"
+                      placeholder="e.g. Dinner with Friends, Goa Trip, Movie Night"
+                      required
+                    />
+                    <small id="error-occasion" class="field-error-msg hidden"></small>
+                  </div>
+
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label for="input-bill-amount" class="form-label">
+                        Total Bill Amount (₹) <span class="required-mark">*</span>
+                      </label>
+                      <div class="input-currency-wrapper">
+                        <span class="currency-symbol" aria-hidden="true">₹</span>
+                        <input
+                          type="text"
+                          inputmode="decimal"
+                          id="input-bill-amount"
+                          name="billAmount"
+                          class="form-input input-currency"
+                          placeholder="100.00"
+                          required
+                        />
+                      </div>
+                      <small class="field-hint">Indian Rupee precision (maximum 2 decimal places).</small>
+                      <small id="error-bill-amount" class="field-error-msg hidden"></small>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="input-expense-date" class="form-label">Date of Expense</label>
+                      <input
+                        type="date"
+                        id="input-expense-date"
+                        name="expenseDate"
+                        class="form-input"
+                      />
+                    </div>
+                  </div>
+                </fieldset>
+
+                <!-- SECTION B & C: Participants & Payer -->
+                <fieldset class="form-fieldset">
+                  <div class="fieldset-header-row">
+                    <legend class="fieldset-legend">2. Participants & Payer</legend>
+                    <span class="badge" id="participant-count-badge">2 People</span>
+                  </div>
+
+                  <!-- Participants List -->
+                  <div class="form-group">
+                    <label class="form-label">Participant List <span class="required-mark">*</span></label>
+                    <div id="participant-rows-container" class="participant-rows-container">
+                      <!-- Dynamic rows will be rendered here -->
+                    </div>
+                    <small id="error-participants" class="field-error-msg hidden"></small>
+
+                    <button type="button" id="btn-add-participant" class="btn-secondary btn-sm mt-sm">
+                      + Add Friend
+                    </button>
+                  </div>
+
+                  <!-- Payer Selection -->
+                  <div class="form-group mt-md">
+                    <label for="select-payer" class="form-label">
+                      Who Paid the Bill? <span class="required-mark">*</span>
+                    </label>
+                    <select id="select-payer" name="payer" class="form-select" required>
+                      <option value="">Select payer from participants...</option>
+                    </select>
+                    <small id="error-payer" class="field-error-msg hidden"></small>
+                  </div>
+                </fieldset>
+
+                <!-- OPTIONAL ADVANCED SPLITTING (COLLAPSIBLE) -->
+                <div class="advanced-split-accordion">
+                  <button
+                    type="button"
+                    id="btn-toggle-advanced-split"
+                    class="accordion-toggle"
+                    aria-expanded="false"
+                    aria-controls="advanced-split-content"
+                  >
+                    <span class="accordion-title-group">
+                      <span class="accordion-icon" aria-hidden="true">⚙️</span>
+                      <span class="accordion-title">Want to split differently?</span>
+                      <span class="badge-method-active" id="active-method-indicator">Equal Split</span>
+                    </span>
+                    <span class="accordion-arrow" id="accordion-arrow-icon" aria-hidden="true">&#9662;</span>
+                  </button>
+
+                  <div id="advanced-split-content" class="advanced-split-content hidden">
+                    <div class="split-method-tabs" role="tablist" aria-label="Split Methods">
+                      <button
+                        type="button"
+                        role="tab"
+                        class="method-tab active"
+                        id="tab-split-equal"
+                        data-method="equal"
+                        aria-selected="true"
+                        aria-controls="split-mode-equal-panel"
+                      >
+                        Equal Split
+                      </button>
+                      <button
+                        type="button"
+                        role="tab"
+                        class="method-tab"
+                        id="tab-split-items"
+                        data-method="items"
+                        aria-selected="false"
+                        aria-controls="split-mode-items-panel"
+                      >
+                        Split by Items
+                      </button>
+                      <button
+                        type="button"
+                        role="tab"
+                        class="method-tab"
+                        id="tab-split-custom"
+                        data-method="custom"
+                        aria-selected="false"
+                        aria-controls="split-mode-custom-panel"
+                      >
+                        Custom Shares
+                      </button>
+                    </div>
+
+                    <!-- Mode A: Equal Split (Default) -->
+                    <div id="split-mode-equal-panel" class="method-panel" role="tabpanel" aria-labelledby="tab-split-equal">
+                      <p class="text-sm text-muted">
+                        The entire bill is divided equally among all participants. Any remaining paise are distributed deterministically so the sum equals the original bill exactly.
+                      </p>
+                    </div>
+
+                    <!-- Mode B: Split by Items -->
+                    <div id="split-mode-items-panel" class="method-panel hidden" role="tabpanel" aria-labelledby="tab-split-items">
+                      <div class="panel-header-row">
+                        <div>
+                          <h4 class="method-panel-title">Itemized Bill Breakdown</h4>
+                          <p class="text-sm text-muted">Allocate items and drinks to the people who consumed them.</p>
+                        </div>
+                        <button type="button" id="btn-add-item" class="btn-secondary btn-sm">
+                          + Add Item
+                        </button>
+                      </div>
+
+                      <div id="items-list-container" class="items-list-container mt-sm">
+                        <!-- Dynamic item cards will be rendered here -->
+                      </div>
+                      <small id="error-items" class="field-error-msg hidden"></small>
+
+                      <!-- Running Total & Difference Tracker -->
+                      <div class="items-tracker-card mt-md">
+                        <div class="tracker-row">
+                          <span>Items Total:</span>
+                          <strong id="items-running-total" class="tabular">₹0.00</strong>
+                        </div>
+                        <div class="tracker-row">
+                          <span>Target Bill Amount:</span>
+                          <strong id="items-target-bill" class="tabular">₹0.00</strong>
+                        </div>
+                        <div id="items-diff-status" class="tracker-diff text-muted">
+                          Difference: ₹0.00
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Mode C: Custom Shares -->
+                    <div id="split-mode-custom-panel" class="method-panel hidden" role="tabpanel" aria-labelledby="tab-split-custom">
+                      <div class="panel-header-row">
+                        <div>
+                          <h4 class="method-panel-title">Custom Shares Allocation</h4>
+                          <p class="text-sm text-muted">Enter the exact amount each participant should pay.</p>
+                        </div>
+                        <button type="button" id="btn-autofill-custom" class="btn-secondary btn-sm" title="Divide the bill equally across fields as a baseline">
+                          Auto-fill Equal
+                        </button>
+                      </div>
+
+                      <div id="custom-shares-container" class="custom-shares-container mt-sm">
+                        <!-- Dynamic inputs for each participant rendered here -->
+                      </div>
+                      <small id="error-custom-shares" class="field-error-msg hidden"></small>
+
+                      <!-- Custom Shares Difference Tracker -->
+                      <div class="items-tracker-card mt-md">
+                        <div class="tracker-row">
+                          <span>Assigned Shares Total:</span>
+                          <strong id="custom-shares-total" class="tabular">₹0.00</strong>
+                        </div>
+                        <div class="tracker-row">
+                          <span>Target Bill Amount:</span>
+                          <strong id="custom-target-bill" class="tabular">₹0.00</strong>
+                        </div>
+                        <div id="custom-diff-status" class="tracker-diff text-muted">
+                          Difference: ₹0.00
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="form-actions-row">
+                  <button type="submit" id="btn-split-bill" class="btn-primary btn-lg">
+                    Split Bill
+                  </button>
+                  <button type="button" id="btn-clear-form" class="btn-secondary">
+                    Clear Form
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- SECTION D: Calculated Result Card -->
+            <div class="calculation-result-container">
+              <div id="result-placeholder-card" class="card result-card empty-result-card">
+                <span class="empty-icon" aria-hidden="true">🧮</span>
+                <h3 class="empty-title">Ready to Calculate</h3>
+                <p class="empty-desc">Enter the bill amount, participants, and click <strong>Split Bill</strong> to see the exact breakdown down to the paisa.</p>
+              </div>
+
+              <div id="calculated-result-card" class="card result-card hidden" aria-live="polite">
+                <div class="result-header">
+                  <div class="result-badge-row">
+                    <div class="badge-group">
+                      <span class="badge-success">Calculated</span>
+                      <span class="badge" id="result-method-badge">Equal Split</span>
+                    </div>
+                    <span class="text-muted text-sm" id="result-display-date"></span>
+                  </div>
+                  <h2 class="result-occasion-title" id="result-occasion-name">Occasion</h2>
+                  <div class="result-meta-grid">
+                    <div class="result-meta-item">
+                      <span class="meta-label">Total Bill</span>
+                      <span class="meta-value tabular font-bold" id="result-total-bill">₹0.00</span>
+                    </div>
+                    <div class="result-meta-item">
+                      <span class="meta-label">Paid By</span>
+                      <span class="meta-value" id="result-payer-name">Payer</span>
+                    </div>
+                    <div class="result-meta-item">
+                      <span class="meta-label">Participants</span>
+                      <span class="meta-value" id="result-participant-count">0</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="result-shares-section">
+                  <h3 class="shares-subheading">Individual Share Breakdown</h3>
+                  <div id="result-shares-list" class="shares-list">
+                    <!-- Dynamic share items rendered here -->
+                  </div>
+
+                  <!-- Optional Itemized Breakdown Table if split by items -->
+                  <div id="result-itemized-container" class="itemized-breakdown-box hidden">
+                    <h4 class="itemized-subheading">Items Allocated</h4>
+                    <div id="result-itemized-list" class="itemized-list">
+                      <!-- Rendered dynamically -->
+                    </div>
+                  </div>
+
+                  <div class="result-exactness-summary">
+                    <div class="exactness-row">
+                      <span>Sum of Individual Shares:</span>
+                      <strong class="tabular" id="result-sum-shares">₹0.00</strong>
+                    </div>
+                    <div class="exactness-row">
+                      <span>Original Bill Total:</span>
+                      <strong class="tabular" id="result-original-total">₹0.00</strong>
+                    </div>
+                    <div class="exactness-badge" id="result-exactness-badge">
+                      ✓ Exactly balanced (0 paise difference)
+                    </div>
+                  </div>
+                </div>
+
+                <div class="result-actions-footer">
+                  <div id="save-status-message" class="save-feedback hidden" role="status"></div>
+                  <div class="result-buttons">
+                    <button type="button" id="btn-save-expense" class="btn-primary btn-block">
+                      Save Expense
+                    </button>
+                    <button type="button" id="btn-view-in-history" class="btn-secondary btn-block hidden">
+                      View in History &rarr;
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 3: SETTLE UP (GREEDY DEBT SETTLEMENT) -->
+        <section id="section-settle-up" class="content-section hidden" aria-label="Settle Up">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Settle Up</h1>
+              <p class="section-subtitle">Greedy debt-settlement algorithm calculates the minimal transfers to settle all obligations across saved expenses.</p>
+            </div>
+          </div>
+
+          <!-- Empty State for Settlements -->
+          <div id="settle-empty-state" class="card empty-card hidden">
+            <span class="empty-icon" aria-hidden="true">🤝</span>
+            <h3 class="empty-title">No expenses yet</h3>
+            <p class="empty-desc">Add an expense to calculate settlements and see who owes whom.</p>
+            <button type="button" class="btn-primary mt-md" data-nav="new-expense">Add First Expense</button>
+          </div>
+
+          <!-- All Settled Up State -->
+          <div id="settle-balanced-state" class="card empty-card hidden">
+            <span class="empty-icon" aria-hidden="true">🎉</span>
+            <h3 class="empty-title text-success">All settled up!</h3>
+            <p class="empty-desc">All participant contributions and obligations cancel out. No money needs to be transferred.</p>
+          </div>
+
+          <!-- Settle Up Content Container -->
+          <div id="settle-content-container" class="settle-layout-grid">
+            <!-- Suggested Transactions Card -->
+            <div class="card">
+              <div class="card-header-flex">
+                <div>
+                  <h2 class="card-title">Suggested Settlement Transfers</h2>
+                  <p class="card-subtitle">Transactions needed to completely clear all balances.</p>
+                </div>
+                <span class="badge" id="settlement-count-badge">0 Transfers</span>
+              </div>
+
+              <div id="settlement-transfers-list" class="transfers-list mt-md">
+                <!-- Settlement transaction rows rendered here -->
+              </div>
+
+              <div class="settlement-note mt-md">
+                <small class="text-muted">
+                  <strong>Note:</strong> Split Wiz calculates suggested settlement transfers based on recorded expenses. The application does not process actual banking or monetary transfers.
+                </small>
+              </div>
+            </div>
+
+            <!-- Participant Balances Card -->
+            <div class="card">
+              <div class="card-header-flex">
+                <div>
+                  <h2 class="card-title">Net Balances</h2>
+                  <p class="card-subtitle">Total paid minus allocated share for each person.</p>
+                </div>
+                <span class="badge-success" id="balance-invariant-badge">Balanced (₹0.00 net)</span>
+              </div>
+
+              <div class="table-responsive mt-md">
+                <table class="data-table" aria-label="Participant net balances">
+                  <thead>
+                    <tr>
+                      <th scope="col">Participant</th>
+                      <th scope="col" class="text-right">Total Paid</th>
+                      <th scope="col" class="text-right">Total Share</th>
+                      <th scope="col" class="text-right">Net Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody id="balances-table-body">
+                    <!-- Balances rows rendered here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 4: HISTORY -->
+        <section id="section-history" class="content-section hidden" aria-label="Expense History">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Expense History</h1>
+              <p class="section-subtitle">Review, search, edit, or delete all saved expenses.</p>
+            </div>
+            <div class="header-action-group">
+              <button type="button" id="btn-export-json" class="btn-secondary btn-sm" title="Export your data to a JSON backup file">
+                Export JSON
+              </button>
+              <label for="input-import-file" class="btn-secondary btn-sm file-input-label" title="Import expenses from a JSON backup file">
+                Import JSON
+                <input type="file" id="input-import-file" accept=".json,application/json" class="sr-only" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Search and Filter Bar -->
+          <div class="card filter-bar-card">
+            <div class="filter-controls-row">
+              <div class="filter-group flex-1">
+                <label for="history-search" class="sr-only">Search by occasion</label>
+                <input
+                  type="text"
+                  id="history-search"
+                  class="form-input"
+                  placeholder="🔍 Search expenses by occasion name..."
+                />
+              </div>
+
+              <div class="filter-group">
+                <label for="history-filter-payer" class="sr-only">Filter by payer</label>
+                <select id="history-filter-payer" class="form-select">
+                  <option value="">All Payers</option>
+                </select>
+              </div>
+
+              <button type="button" id="btn-reset-filters" class="btn-secondary btn-sm">Reset</button>
+            </div>
+          </div>
+
+          <!-- Empty State for History -->
+          <div id="history-empty-state" class="card empty-card hidden">
+            <span class="empty-icon" aria-hidden="true">🧾</span>
+            <h3 class="empty-title">No expenses yet. Add your first one!</h3>
+            <p class="empty-desc">Whenever you calculate and save an expense, it will appear here in chronological order.</p>
+            <button type="button" class="btn-primary mt-md" data-nav="new-expense">+ New Expense</button>
+          </div>
+
+          <!-- History List Table / Cards -->
+          <div id="history-list-container" class="history-list-container mt-md">
+            <!-- Rendered dynamically -->
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- ==================== ACCESSIBLE MODALS ==================== -->
+
+    <!-- Confirmation Modal (Delete / Clear / Overwrite) -->
+    <div id="modal-confirm" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-confirm-title">
+      <div class="modal-card">
+        <h3 id="modal-confirm-title" class="modal-title">Confirm Action</h3>
+        <p id="modal-confirm-message" class="modal-message">Are you sure you want to proceed?</p>
+        <div class="modal-actions">
+          <button type="button" id="modal-confirm-cancel" class="btn-secondary">Cancel</button>
+          <button type="button" id="modal-confirm-proceed" class="btn-danger">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expense Details Modal -->
+    <div id="modal-details" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-details-title">
+      <div class="modal-card modal-card-lg">
+        <div class="modal-header-flex">
+          <h3 id="modal-details-title" class="modal-title">Expense Details</h3>
+          <button type="button" id="modal-details-close" class="btn-icon" aria-label="Close details">&times;</button>
+        </div>
+        <div id="modal-details-content" class="modal-body">
+          <!-- Dynamically populated -->
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="modal-details-edit" class="btn-secondary">Edit Expense</button>
+          <button type="button" id="modal-details-done" class="btn-primary">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Self-Check Automated Test Suite Modal -->
+    <div id="modal-verification" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-verification-title">
+      <div class="modal-card modal-card-lg">
+        <div class="modal-header-flex">
+          <h3 id="modal-verification-title" class="modal-title">Hackathon Test Suite Verification</h3>
+          <button type="button" id="modal-verification-close" class="btn-icon" aria-label="Close test modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="text-sm text-muted mb-md">
+            Executes mandatory test cases (Exact paise splits, remainder distribution, zero/negative rejection, precision enforcement, settlement invariants).
+          </p>
+          <div id="verification-results-container" class="test-results-container">
+            <!-- Dynamic test items -->
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="modal-verification-run-again" class="btn-secondary">Run Again</button>
+          <button type="button" id="modal-verification-close-btn" class="btn-primary">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Site Footer -->
+    <footer class="app-footer">
+      <div class="footer-container">
+        <div class="footer-brand">
+          <span>⚡ <strong>Split Wiz</strong></span>
+          <span class="footer-tag">Exact Paise Split & Settlement Engine</span>
+        </div>
+        <div class="footer-links">
+          <button type="button" id="btn-open-verification" class="footer-link-btn">
+            Run Self-Check Tests
+          </button>
+          <span class="footer-dot">&bull;</span>
+          <span class="footer-copy">All calculations performed locally in paise precision.</span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

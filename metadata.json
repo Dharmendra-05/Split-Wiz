@@ -1,0 +1,6 @@
+{
+  "name": "Split Wiz",
+  "description": "Expense-splitting website for friends to divide bills, track expenses, and settle debts with exact paise calculations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

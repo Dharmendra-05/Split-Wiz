@@ -1,8 +1,29 @@
 {
-  "name": "react-example",
+  "name": "split-wiz",
+  "version": "1.0.0",
+  "description": "Zero-code expense-splitting and exact-paise debt settlement web application",
   "private": true,
-  "version": "0.0.0",
   "type": "module",
+  "license": "MIT",
+  "author": "Dharmendra-05",
+  "homepage": "https://github.com/Dharmendra-05/Split-Wiz#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dharmendra-05/Split-Wiz.git"
+  },
+  "keywords": [
+    "zero-code",
+    "hackathon",
+    "google-ai-studio",
+    "gemini",
+    "iit-bombay-techfest",
+    "expense-splitter",
+    "bill-split",
+    "debt-simplification",
+    "exact-paise",
+    "vanilla-js",
+    "web-crypto"
+  ],
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",

@@ -1,0 +1,11 @@
+Theme 1: Bill Splitter
+A group of friends has just finished dinner and wants to settle up fast. Build a page that splits the bill for them.
+Core feature Checklist:
+Take an occasion name, the bill amount and the number of people.
+Have a button that shows what each person pays.
+Show each person's share, and the shares add up exactly to the bill.
+Show a message, and no result, if the bill or the number of people is empty, zero or negative.
+Still show the result after the page is reloaded.
+Note: Everything runs inside the page. No AI calls, no AI prompts , no internet. Your page will be tested with inputs not shown here. Everything beyond these 5 points is your choice. 
+Build only in Google AI Studio. Open Build mode and click + New app. Use the Gemini 3.8 Flash model.
+Give Gemini your prompts as typed text only. Do not insert or attach any image or document.

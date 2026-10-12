@@ -1,175 +1,236 @@
 ---
 name: repo-lifecycle
-description: Maintain GitHub repository metadata (About description, website, topics/tags), community health standards (LICENSE, Code of Conduct), semantic versioning, git tags, and GitHub releases for Split Wiz.
+description: Standardized framework for managing any repository's GitHub presentation (About, topics, website), delivery archetype evaluation (Packages vs Deployments vs Releases), open-source community health standards (License, Code of Conduct), semantic versioning, and git release tags.
 ---
 
-# Repository Lifecycle & Release Maintainer
+# Universal Repository Lifecycle & Packaging Framework
 
-Maintain high repository hygiene, metadata presentation, community health standards, semantic versioning, and release workflows for **Split Wiz**.
-
-Repository: `D:\Git_Personal\Split Wiz`  
-Remote: `git@github.com:Dharmendra-05/Split-Wiz.git`  
-GitHub URL: `https://github.com/Dharmendra-05/Split-Wiz`
+A comprehensive framework and standard operating procedure for auditing, organizing, and maintaining any software repository's GitHub presence, delivery channels, community health files, and release cycles.
 
 ---
 
-## 1. GitHub Repository "About" Section Maintenance
+## 1. Repository Archetype & Delivery Strategy
 
-The repository sidebar ("About" section on the right side of the repository home page) provides immediate discovery and context for visitors, judges, and open-source contributors.
+Not every repository requires the same GitHub features. Activating unused features (such as an empty **Packages** section or missing **Releases**) produces visual clutter and signals incomplete maintenance.
 
-### 1.1 Metadata Standards
+Use this decision matrix to classify the repository and select the appropriate delivery strategy:
 
-| Element | Specification | Split Wiz Recommended Setting |
-| :--- | :--- | :--- |
-| **Description** | Concise (under 350 chars), stating what the project is, why it was made, and key tech. | `⚡ Zero-code expense-splitting & exact-paise debt settlement web app built with Gemini 3.8 Flash for IIT Bombay Techfest Zonals @ SAU.` |
-| **Website URL** | Live app link or primary deployment URL. | `https://ai.studio/apps/1b5a65eb-84a3-4ce8-96dd-796a23671ad0` |
-| **Topics (Tags)** | Lowercase, hyphen-separated tags (max 20) categorizing tech, event, and domain. | See taxonomy below (§1.2) |
-| **Include in Home** | Checkboxes for Releases, Packages, Environments. | Enable **Releases** checkbox |
+| Archetype | Primary Purpose | Live URL | Releases | Packages (npm/Docker) | Recommended Sidebar Setup |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **A. Standalone Web App / SPA** | Interactive frontend app for end users | Mandatory (Vercel, Netlify, Cloud Run, GitHub Pages) | Recommended (major milestones) | **Disabled** (unless containerized or engine extracted) | Show: About, Releases, Languages.<br>Hide: **Packages**. |
+| **B. Reusable Library / SDK** | Code imported into other projects | Documentation site or API reference | Mandatory (every SemVer bump) | **Mandatory** (npm, PyPI, crates.io, GitHub Packages) | Show: About, Releases, **Packages**, Languages. |
+| **C. Backend Service / API** | Server or microservice | API docs / Swagger endpoint | Recommended | **Recommended** (Docker image via GHCR) | Show: About, Environments, Releases, Packages. |
+| **D. Hackathon / Competition Showcase** | Finished experiment with strict rules & context | Live applet or demo link | Mandatory (initial submission snapshot) | **Disabled** (unless library submission was required) | Show: About, Releases, Languages.<br>Hide: **Packages**. |
+| **E. Research / Academic Artifact** | Code accompanying paper or benchmark | Paper DOI or project page | Recommended (paper release version) | Optional (data packages) | Show: About, Releases, Languages. |
 
-### 1.2 Curated Topics Taxonomy
+---
 
-Maintain these topics on the repository:
+## 2. The "Packages" Decision Engine
 
-- `zero-code`
-- `hackathon`
-- `google-ai-studio`
-- `gemini-3-8-flash`
-- `iit-bombay-techfest`
-- `south-asian-university`
-- `expense-splitter`
-- `bill-split`
-- `debt-simplification`
-- `exact-paise`
-- `vanilla-javascript`
-- `web-crypto`
-- `pbkdf2`
-- `min-cash-flow`
+When evaluating the **Packages** section on GitHub (`"No packages published"`), apply this three-tier rule:
 
-### 1.3 How to Update the About Section
+```mermaid
+flowchart TD
+    Start[Evaluate Repository Need for Packages] --> Q1{Is this code intended to be installed into other projects?}
+    Q1 -- Yes --> Library[Archetype B: Library/SDK]
+    Library --> PublishNPM[Publish npm/PyPI Package or GHCR Container]
+    PublishNPM --> KeepPackagesEnabled[Keep Packages Enabled in Sidebar]
 
-#### Option A: GitHub Web UI
-1. Navigate to `https://github.com/Dharmendra-05/Split-Wiz`.
-2. Look at the top right of the code tab to find the **About** section.
-3. Click the **gear icon (⚙️)** next to "About".
-4. Enter the **Description**, **Website URL**, and paste the **Topics**.
-5. Ensure the **Releases** toggle is checked.
-6. Click **Save changes**.
+    Q1 -- No --> Q2{Is it a deployable service needing a container image?}
+    Q2 -- Yes --> PublishDocker[Publish Docker Image to GitHub Container Registry ghcr.io]
+    PublishDocker --> KeepPackagesEnabled
 
-#### Option B: GitHub REST API (curl)
-If a GitHub Personal Access Token (PAT) with `repo` scope is available:
-```powershell
-# Set token
-$env:GH_TOKEN="<your-token>"
-
-# Update description, homepage
-curl -X PATCH -H "Authorization: token $env:GH_TOKEN" `
-  -H "Accept: application/vnd.github.v3+json" `
-  https://api.github.com/repos/Dharmendra-05/Split-Wiz `
-  -d '{"description":"⚡ Zero-code expense-splitting & exact-paise debt settlement web app built with Gemini 3.8 Flash for IIT Bombay Techfest Zonals @ SAU.","homepage":"https://ai.studio/apps/1b5a65eb-84a3-4ce8-96dd-796a23671ad0","has_issues":true,"has_projects":false,"has_wiki":false}'
-
-# Update topics
-curl -X PUT -H "Authorization: token $env:GH_TOKEN" `
-  -H "Accept: application/vnd.github.mercy-preview+json" `
-  https://api.github.com/repos/Dharmendra-05/Split-Wiz/topics `
-  -d '{"names":["zero-code","hackathon","google-ai-studio","gemini-3-8-flash","iit-bombay-techfest","expense-splitter","bill-split","debt-simplification","exact-paise","vanilla-javascript","web-crypto"]}'
+    Q2 -- No --> Q3{Is it a standalone Web App, Hackathon project, or CLI tool?}
+    Q3 -- Yes --> WebApp[Archetype A / D]
+    WebApp --> OptionA{Do you want to extract a core engine as a sub-library?}
+    OptionA -- Yes --> ExtractEngine[Package and publish engine to npm/@scope]
+    OptionA -- No --> HidePackages[Hide Packages Section from Sidebar via Gear Icon]
 ```
 
+### Rule 1: When to Hide Packages (Cleanest UI)
+If the project is a standalone web application, hackathon entry, or demonstration script, **turn off the Packages section**:
+1. Click the **⚙️ (gear icon)** next to **About** on the top right of the repository home page.
+2. In the modal under **Include in home page**, uncheck **Packages**.
+3. Click **Save changes**.
+> *Outcome:* Removes the placeholder link and keeps visitor focus on the working app, README, and official releases.
+
+### Rule 2: When to Publish an npm Package
+Publish an npm package when the project contains reusable algorithms, utility functions, or components that other developers can import.
+- **Scope format:** `@username/package-name` (e.g. `@dharmendra-05/split-wiz`).
+- **Target Registry:** npmjs.com or GitHub Packages (`npm.pkg.github.com`).
+- **Prerequisites:**
+  - Export entry point (`"main": "dist/index.js"` or `"module": "index.js"`).
+  - Clean TypeScript declarations (`"types": "index.d.ts"`).
+  - Explicit `"files"` whitelist in `package.json`.
+
+### Rule 3: When to Publish a Docker Container (GHCR)
+Publish to GitHub Container Registry (`ghcr.io/username/repo`) when:
+- The app requires specific runtime environments, backend servers, or multi-service orchestration.
+- Users should be able to run it with a single command (`docker run -p 3000:80 ghcr.io/username/repo:latest`).
+
 ---
 
-## 2. Community Health Standards
+## 3. GitHub "About" Sidebar Optimization
 
-Ensure the following files are present at the root of the repository:
+The right-hand **About** section provides discovery across GitHub search, search engines, and social cards.
 
-| File | Purpose | Location |
+### 3.1 Description Formula (Max 350 characters)
+Use this structured template:
+```text
+[Emoji] [Identity/Type] + [Core Value Proposition] + [Built with Stack/Platform] + [Context/Event]
+```
+
+*Example for Web App / Hackathon:*
+> `⚡ Zero-code expense-splitting & exact-paise debt settlement web app built with Gemini 3.8 Flash for IIT Bombay Techfest Zonals @ SAU.`
+
+*Example for Library / SDK:*
+> `📐 High-precision integer-paise financial splitting and greedy min-cash-flow debt simplification engine for JavaScript/TypeScript.`
+
+### 3.2 Website URL Resolution Order
+Always configure the **Website** field in this priority order:
+1. **Live Production / Demo Deployment** (e.g., Google AI Studio app, Vercel, Netlify, Cloud Run).
+2. **Project Documentation Page** (e.g., GitHub Pages, GitBook).
+3. **Repository Readme Anchor** (if no external deployment exists, use `https://github.com/username/repo#readme`).
+
+### 3.3 4-Tier Topics (Tags) Taxonomy
+Select 10–18 targeted tags using this four-tier taxonomy:
+
+1. **Domain / Problem Space:** What problem does it solve?  
+   `expense-splitter`, `bill-split`, `debt-simplification`, `exact-paise`, `fintech`
+2. **Core Technology Stack:** What is it built with?  
+   `vanilla-javascript`, `html5`, `css3`, `web-crypto`, `pbkdf2`
+3. **AI / Tooling Platform:** How was it authored or supported?  
+   `google-ai-studio`, `gemini-3-8-flash`, `prompt-engineering`, `zero-code`
+4. **Context / Event / Milestone:** Where was it built?  
+   `hackathon`, `iit-bombay-techfest`, `south-asian-university`
+
+---
+
+## 4. Open-Source Community Health Standards
+
+Every public repository should satisfy GitHub's Community Standards checklist to build trust and prevent legal ambiguity:
+
+### 4.1 License Selection
+Choose a standard OSI-approved license based on project intent:
+
+| License | Best For | Characteristics |
 | :--- | :--- | :--- |
-| `LICENSE` | MIT License ensuring permissive open-source reuse. | `LICENSE` |
-| `CODE_OF_CONDUCT.md` | Contributor Covenant v2.1 establishing welcoming standards. | `CODE_OF_CONDUCT.md` |
-| `README.md` | Comprehensive documentation, origin story, and setup guide. | `README.md` |
-| `.gitignore` | Prevents secrets, node_modules, and build outputs from leaking. | `.gitignore` |
+| **MIT** | Maximum permissive reuse, web apps, hackathon projects | Highly permissive; allows commercial and private use with minimal restriction. |
+| **Apache-2.0** | Enterprise utilities, libraries | Permissive, includes explicit patent grant and trademark protection. |
+| **GPLv3** | Strong copyleft | Forces derivative works to remain open source under the same terms. |
+
+### 4.2 Code of Conduct (`CODE_OF_CONDUCT.md`)
+Always provide a Contributor Covenant v2.1 file containing an active, designated moderation email (`mailto:...`).
+
+### 4.3 Documentation Hierarchy
+- `README.md`: High-level presentation, origin story, architecture, quick start.
+- `docs/`: In-depth specifications, challenge briefs, mathematical proofs, or API references.
+- `.env.example`: Safe configuration template with zero exposed secrets.
 
 ---
 
-## 3. Semantic Versioning Protocol
+## 5. Semantic Versioning & Synchronization
 
-Split Wiz adheres to **Semantic Versioning (SemVer 2.0.0)**: `MAJOR.MINOR.PATCH`.
+Follow **SemVer 2.0.0**: `vMAJOR.MINOR.PATCH`
 
-### 3.1 Synchronized Version Files
+```
+  v 1 . 0 . 0
+    │   │   └── PATCH: Backward-compatible bug fixes
+    │   └────── MINOR: Backward-compatible new features / enhancements
+    └────────── MAJOR: Breaking changes or incompatible API revisions
+```
 
-When bumping versions, update all three locations in sync:
+### Synchronization Protocol
+Before tagging a release, ensure all internal version declarations match:
 1. `package.json` -> `"version": "X.Y.Z"`
-2. `metadata.json` -> check compatibility
-3. `app.js` -> `STORAGE_KEYS.SCHEMA_VERSION: 'X.Y.Z'`
-
-### 3.2 Version Milestones
-
-- `v1.0.0`: Initial stable hackathon submission release for ZeroCode @ South Asian University (Delhi Zonals for IIT Bombay Techfest). Features exact paise calculations, greedy debt settlement, PBKDF2 encryption, equal/item/custom split modes, and 23-assertion test suite.
-- `v1.1.0`: Enhancements to resilient local storage schema, export/import migration, or UI polish.
+2. App runtime constants (e.g., `SCHEMA_VERSION: 'X.Y.Z'` in `app.js`)
+3. Manifests (e.g., `metadata.json` or `pyproject.toml`)
 
 ---
 
-## 4. Git Tagging & Release Management
+## 6. Git Tagging & Release Workflow
 
-### 4.1 Creating an Annotated Tag
-
-Always use **annotated tags** (`-a`) with a descriptive message rather than lightweight tags:
+### 6.1 Creating Annotated Tags
+Always use annotated tags (`-a`) with descriptive metadata:
 
 ```powershell
-# 1. Ensure working directory is clean
+# 1. Verify working directory is completely clean
 git status --short --branch
 
-# 2. Create the annotated tag
+# 2. Create the annotated release tag
 git tag -a v1.0.0 -m "Release v1.0.0: Initial ZeroCode Hackathon release for IIT Bombay Techfest Zonals"
 
-# 3. Verify the tag
+# 3. Inspect the created tag
 git tag -n1 -l "v1.0.0"
 
-# 4. Push the tag to GitHub (only when authorized)
+# 4. Push the tag to GitHub (only with explicit authorization)
 git push origin v1.0.0
 ```
 
-### 4.2 GitHub Release Format Template
-
-When publishing a release on GitHub:
-1. Go to `https://github.com/Dharmendra-05/Split-Wiz/releases/new`.
-2. Select tag: `v1.0.0`.
-3. Release title: `Split Wiz v1.0.0 — ZeroCode Hackathon Release (IIT Bombay Techfest Zonals)`.
-4. Release description template:
+### 6.2 Standard GitHub Release Notes Template
+When publishing a release on GitHub (`/releases/new`), structure the notes with these sections:
 
 ```markdown
-## ⚡ Split Wiz v1.0.0
+## ⚡ [Project Name] v[X.Y.Z]
 
-Initial official release of **Split Wiz**, prompt-engineered in **Google AI Studio** using **Gemini 3.8 Flash** for the **ZeroCode** competition held at **South Asian University (SAU), New Delhi** (Delhi Zonals qualifier for **IIT Bombay Techfest**).
+[1-2 sentences summarizing the release milestone, context, and purpose.]
 
-### 🏆 Competition Highlights
-- Built under a strict hackathon constraint where writing **>5 lines of code** carried an immediate penalty.
-- Engineered via a comprehensive zero-code prompt architecture submitted as a `.zip` file.
-- Runs 100% client-side with zero external runtime AI calls or internet connectivity required.
+### 🏆 Milestone / Context Highlights
+- [Key highlight 1: event, milestone, or major achievement]
+- [Key highlight 2: architectural breakthrough or performance metric]
 
-### ✨ What's Included
-- **Exact Paise Calculation Engine:** Integer arithmetic eliminating floating-point rounding errors ($1\text{ INR} = 100\text{ paise}$).
-- **Deterministic Remainder Distribution:** Guarantees zero-sum invariant on all splits.
-- **Greedy Debt Simplification:** Min-cash-flow algorithm minimizing settlement transactions.
-- **Three Split Modes:** Equal split, itemized split, and custom shares.
-- **Client-Side Cryptography:** PBKDF2 password hashing with 100,000 iterations via Web Crypto API.
-- **Resilient Persistence:** LocalStorage management with automatic in-memory fallback and JSON backup/restore.
-- **Verification Suite:** Embedded 23-assertion automated test harness in `app.js`.
+### ✨ What's Included / New Features
+- **[Feature 1]:** [Brief description of functionality and implementation]
+- **[Feature 2]:** [Brief description of functionality and implementation]
+- **[Feature 3]:** [Brief description of functionality and implementation]
+
+### 🐛 Bug Fixes & Refinements
+- [Fix 1: issue addressed]
+- [Fix 2: edge case handled]
 
 ### 📦 Artifacts & Documentation
-- Full challenge brief: `docs/project_theme.txt`
-- Complete documentation: `README.md`
+- Documentation: `README.md`
+- Challenge / Problem Brief: `docs/`
 - License: MIT
-- Code of Conduct: Contributor Covenant v2.1
 ```
 
 ---
 
-## 5. Lifecycle Maintenance Checklist
+## 7. Step-by-Step Repository Audit Runbook
 
-When performing repository maintenance:
-- [ ] Working tree is clean (`git status`).
-- [ ] `LICENSE` is present with current year and author.
-- [ ] `CODE_OF_CONDUCT.md` is present with valid contact email.
-- [ ] `package.json` metadata (name, version, license, keywords) matches the repository.
-- [ ] `README.md` links and badges are valid.
-- [ ] Tag matches the version in `package.json` (`vX.Y.Z`).
-- [ ] GitHub "About" description, homepage, and topics are set up.
+Follow this runbook when auditing or updating any repository:
+
+1. **Step 1 — Classify Archetype:** Determine if the repo is Archetype A (Web App), B (Library), C (Backend), or D (Hackathon).
+2. **Step 2 — Configure Sidebar ("About"):**
+   - Apply the description template (§3.1).
+   - Add the live demo/documentation URL (§3.2).
+   - Apply the 4-tier tag taxonomy (§3.3).
+   - Check or uncheck **Releases** and **Packages** based on Archetype (§1 & §2).
+3. **Step 3 — Audit Community Health:**
+   - Verify `LICENSE` is present with valid copyright year and author.
+   - Verify `CODE_OF_CONDUCT.md` is present with active email.
+   - Verify `README.md` has functional links, badges, and accurate setup steps.
+4. **Step 4 — Verify Project Manifests:**
+   - Verify `package.json` / `pyproject.toml` contains clean project name, semver version, license, and repository URL.
+5. **Step 5 — Create Annotated Release Tag:**
+   - Create annotated Git tag `vX.Y.Z`.
+   - Push commit and tag to GitHub.
+6. **Step 6 — Publish GitHub Release:**
+   - Use the Release Notes template (§6.2) to publish the official release.
+
+---
+
+## 8. Reference Implementation: Split Wiz
+
+This repository serves as a model implementation of **Archetype D (Hackathon Showcase) & Archetype A (Client-Side Web App)**:
+
+- **Repository:** `Dharmendra-05/Split-Wiz`
+- **Archetype:** Standalone Web App / Zero-Code Hackathon Showcase
+- **Sidebar Configuration:**
+  - Description: `⚡ Zero-code expense-splitting & exact-paise debt settlement web app built with Gemini 3.8 Flash for IIT Bombay Techfest Zonals @ SAU.`
+  - Website: `https://ai.studio/apps/1b5a65eb-84a3-4ce8-96dd-796a23671ad0`
+  - Packages: **Disabled** in sidebar (pure client-side SPA, zero package dependencies)
+  - Releases: **Enabled** (`v1.0.0` published)
+- **License:** MIT (`LICENSE`)
+- **Code of Conduct:** Contributor Covenant v2.1 (`CODE_OF_CONDUCT.md`)
+- **Challenge Brief:** `docs/project_theme.txt`
